@@ -47,8 +47,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleChairControl.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="OutFilePath.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(TargetDir)ChairControl.dll "D:\Users\maksa\Documents\Com port\Assets\Plugins\ChairControl.dll"</PostBuildEvent>
+    <PostBuildEvent>set /p Build=&lt;$(ProjectDir)OutFilePath.txt
+IF EXIST "%25Build%25" copy $(TargetPath) "%25Build%25"
+set "Build="</PostBuildEvent>
   </PropertyGroup>
 </Project>

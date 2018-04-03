@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace ChairControl.ChairWork
 {
-    internal class FutuRiftController
+    public class FutuRiftController
     {
 
         private SerialPort port;
