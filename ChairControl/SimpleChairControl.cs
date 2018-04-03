@@ -12,12 +12,13 @@ namespace ChairControl
 
         public float pitch = 0;
         public float roll = 0;
+        public int portNumber = 6;
 
 
         private FutuRiftController controller;
         void Start()
         {
-            controller = FutuRiftController.Default;
+            controller = new FutuRiftController(portNumber);
             controller.Pitch = pitch;
             controller.Roll = roll;
             controller.Start();

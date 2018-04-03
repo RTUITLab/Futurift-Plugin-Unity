@@ -38,8 +38,17 @@ namespace ChairControl.ChairWork
 
         public void Start()
         {
-            //port.Open();
-            timer.Start();
+            try
+            {
+                port.Open();
+                timer.Start();
+
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.Message);
+                Debug.LogError("Can't open port for Chair");
+            }
         }
 
         public void Stop()
