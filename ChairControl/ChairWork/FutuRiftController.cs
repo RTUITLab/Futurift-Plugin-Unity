@@ -69,7 +69,6 @@ namespace ChairControl.ChairWork
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
-
             byte index = 4;
             Fill(ref index, _pitch);
             Fill(ref index, _roll);
@@ -78,12 +77,11 @@ namespace ChairControl.ChairWork
             buffer[index++] = 0;
             buffer[index++] = 0;
 
-            var crc = BitConverter.GetBytes(FullCRC(buffer, 4, index));
+            var crc = BitConverter.GetBytes(FullCRC(buffer, 1, index));
 
             buffer[index++] = crc[0];
             buffer[index++] = crc[1];
             buffer[index++] = MSG.EOM;
-            
             port.Write(buffer, 0, index);
         }
 
@@ -110,7 +108,8 @@ namespace ChairControl.ChairWork
             {
                 if (p[index] == MSG.ESC)
                 {
-                    crc = CRC16(crc, (byte)(p[++index] + MSG.ESC));
+                    index++;
+                    crc = CRC16(crc, (byte)(p[index] + MSG.ESC));
                 }
                 else
                     crc = CRC16(crc, p[index]);
