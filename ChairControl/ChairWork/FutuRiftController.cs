@@ -76,11 +76,7 @@ namespace ChairControl.ChairWork
             buffer[index++] = 0;
             buffer[index++] = 0;
             buffer[index++] = 0;
-
-            var crc = BitConverter.GetBytes(FullCRC(buffer, 1, index));
-
-            buffer[index++] = crc[0];
-            buffer[index++] = crc[1];
+            Fill(ref index, FullCRC(buffer, 1, index));
             buffer[index++] = MSG.EOM;
             port.Write(buffer, 0, index);
         }
@@ -89,30 +85,37 @@ namespace ChairControl.ChairWork
         {
             var arr = BitConverter.GetBytes(value);
             for (int i = 0; i < arr.Length; i++)
+                AddByte(ref index, arr[i]);
+        }
+        private void Fill(ref byte index, ushort value)
+        {
+            var arr = BitConverter.GetBytes(value);
+            for (int i = 0; i < arr.Length; i++)
+                AddByte(ref index, arr[i]);
+        }
+        private void AddByte(ref byte index, byte value)
+        {
+            if (value >= MSG.ESC)
             {
-                if (arr[i] >= MSG.ESC)
-                {
-                    buffer[index++] = MSG.ESC;
-                    buffer[index++] = (byte)(arr[i] - MSG.ESC);
-                }
-                else
-                    buffer[index++] = arr[i];
+                buffer[index++] = MSG.ESC;
+                buffer[index++] = (byte)(value - MSG.ESC);
             }
-
+            else
+                buffer[index++] = value;
         }
 
         private static ushort FullCRC(byte[] p, int start, int end)
         {
             ushort crc = 58005;
-            for (int index = start; index <= end - 1; ++index)
+            for (int i = start; i < end; i++)
             {
-                if (p[index] == MSG.ESC)
+                if (p[i] == MSG.ESC)
                 {
-                    index++;
-                    crc = CRC16(crc, (byte)(p[index] + MSG.ESC));
+                    i++;
+                    crc = CRC16(crc, (byte)(p[i] + MSG.ESC));
                 }
                 else
-                    crc = CRC16(crc, p[index]);
+                    crc = CRC16(crc, p[i]);
             }
             return crc;
         }
