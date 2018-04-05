@@ -10,11 +10,15 @@ namespace ChairControl.ChairWork
 {
     public class FutuRiftController
     {
+        private static FutuRiftController defaultController = new FutuRiftController(6);
+
 
         private SerialPort port;
         Timer timer;
         private float _pitch;
         private float _roll;
+        private byte[] buffer = new byte[33];
+
 
         public float Pitch { get => _pitch; set => _pitch = Mathf.Clamp(value, -15, 21); }
         public float Roll { get => _roll; set => _roll = Mathf.Clamp(value, -18, 18); }
@@ -32,6 +36,10 @@ namespace ChairControl.ChairWork
                 ReadTimeout = 500,
                 PortName = "COM" + portNumber,
             };
+            buffer[0] = MSG.SOM;
+            buffer[1] = 33;
+            buffer[2] = 12;
+            buffer[3] = (byte)Flag.OneBlock;
             timer = new Timer(100);
             timer.Elapsed += Timer_Elapsed;
         }
@@ -54,69 +62,59 @@ namespace ChairControl.ChairWork
         public void Stop()
         {
             timer.Stop();
-            //port.Close();
+            port.Close();
         }
 
-        public static FutuRiftController Default
-        {
-            get
-            {
-                return new FutuRiftController(6);
-            }
-        }
+        public static FutuRiftController Default => defaultController;
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
 
-            var packet = new byte[]
-            {
-                33,
-                12,
-                (byte)Flag.OneBlock
-            }
-            .Concat(BitConverter.GetBytes(_pitch))
-            .Concat(BitConverter.GetBytes(_roll))
-            .Concat(BitConverter.GetBytes(0f))
-            .ToArray();
-            var byteList = EncodePacket(packet).ToArray();
-            Debug.Log($"{Pitch} {Roll}");
-            Debug.Log(string.Join(" ", byteList.Select(b => b.ToString()).ToArray()));
-            //port.Write(byteList, 0, byteList.Length);
-        }
-        private IEnumerable<byte> EncodePacket(byte[] packet)
-        {
-            yield return MSG.SOM;
-            yield return packet[0];
-            yield return packet[1];
-            yield return packet[2];
-            var crc = BitConverter.GetBytes(FullCRC(packet, packet[1] + 3));
-            foreach (var item in Clear(packet.Skip(3).Concat(new byte[] { crc[0], crc[1] })))
-            {
-                yield return item;
-            }
-            yield return MSG.EOM;
+            byte index = 4;
+            Fill(ref index, _pitch);
+            Fill(ref index, _roll);
+            buffer[index++] = 0;
+            buffer[index++] = 0;
+            buffer[index++] = 0;
+            buffer[index++] = 0;
+
+            var crc = BitConverter.GetBytes(FullCRC(buffer, 4, index));
+
+            buffer[index++] = crc[0];
+            buffer[index++] = crc[1];
+            buffer[index++] = MSG.EOM;
+            
+            port.Write(buffer, 0, index);
         }
 
-
-        private IEnumerable<byte> Clear(IEnumerable<byte> source)
+        private void Fill(ref byte index, float value)
         {
-            foreach (var b in source)
+            var arr = BitConverter.GetBytes(value);
+            for (int i = 0; i < arr.Length; i++)
             {
-                if (b >= MSG.ESC)
+                if (arr[i] >= MSG.ESC)
                 {
-                    yield return MSG.ESC;
-                    yield return (byte)(b - MSG.ESC);
+                    buffer[index++] = MSG.ESC;
+                    buffer[index++] = (byte)(arr[i] - MSG.ESC);
                 }
                 else
-                    yield return b;
+                    buffer[index++] = arr[i];
             }
+
         }
 
-        private static ushort FullCRC(byte[] p, int pSize)
+        private static ushort FullCRC(byte[] p, int start, int end)
         {
             ushort crc = 58005;
-            for (int index = 0; index <= pSize - 1; ++index)
-                crc = CRC16(crc, p[index]);
+            for (int index = start; index <= end - 1; ++index)
+            {
+                if (p[index] == MSG.ESC)
+                {
+                    crc = CRC16(crc, (byte)(p[++index] + MSG.ESC));
+                }
+                else
+                    crc = CRC16(crc, p[index]);
+            }
             return crc;
         }
 
