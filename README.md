@@ -65,4 +65,4 @@ sample.Pitch = -16f
 Свойство, возвращающее контроллер по умолчанию, в нем используется COM6
 
 # Важно!
-При окончании программы необходимо останавливать работу контроллера, как это делать показано в [примере работы с контроллером](https://gitlab.com/RealityShift/UnityChairPlugin/blob/master/ChairControl/SimpleChairControl.cs)
+При окончании программы необходимо останавливать работу контроллера, как это делать показано в [примере работы с контроллером](https://github.com/ITLabRTUMIREA/UnityChairPlugin/blob/master/ChairControl/SimpleChairControl.cs)
