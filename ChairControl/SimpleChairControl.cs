@@ -3,11 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using UnityEngine;
 
 namespace ChairControl
 {
-    class SimpleChairControl : MonoBehaviour
+    class SimpleChairControl // : MonoBehaviour
     {
 
         public float pitch = 0;

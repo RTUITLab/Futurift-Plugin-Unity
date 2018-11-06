@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Timers;
-using UnityEngine;
+using ChairControl.Extensions;
 
 namespace ChairControl.ChairWork
 {
@@ -13,15 +14,15 @@ namespace ChairControl.ChairWork
         private static FutuRiftController defaultController = new FutuRiftController(6);
 
 
-        private SerialPort port;
-        Timer timer;
-        private float _pitch;
-        private float _roll;
-        private byte[] buffer = new byte[33];
+        private readonly SerialPort port;
+        private readonly Timer timer;
+        private float pitch;
+        private float roll;
+        private readonly byte[] buffer = new byte[33];
 
 
-        public float Pitch { get => _pitch; set => _pitch = Mathf.Clamp(value, -15, 21); }
-        public float Roll { get => _roll; set => _roll = Mathf.Clamp(value, -18, 18); }
+        public float Pitch { get => pitch; set => pitch = value.Clamp(-15, 21); }
+        public float Roll { get => roll; set => roll = value.Clamp(-18, 18); }
         public bool IsConnected => port.IsOpen;
         public FutuRiftController(int portNumber)
         {
@@ -46,17 +47,8 @@ namespace ChairControl.ChairWork
 
         public void Start()
         {
-            try
-            {
-                port.Open();
-                timer.Start();
-
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(ex.Message);
-                Debug.LogError("Can't open port for Chair");
-            }
+            port.Open();
+            timer.Start();
         }
 
         public void Stop()
@@ -65,13 +57,11 @@ namespace ChairControl.ChairWork
             port.Close();
         }
 
-        public static FutuRiftController Default => defaultController;
-
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             byte index = 4;
-            Fill(ref index, _pitch);
-            Fill(ref index, _roll);
+            Fill(ref index, pitch);
+            Fill(ref index, roll);
             buffer[index++] = 0;
             buffer[index++] = 0;
             buffer[index++] = 0;
@@ -84,13 +74,13 @@ namespace ChairControl.ChairWork
         private void Fill(ref byte index, float value)
         {
             var arr = BitConverter.GetBytes(value);
-            for (int i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Length; i++)
                 AddByte(ref index, arr[i]);
         }
         private void Fill(ref byte index, ushort value)
         {
             var arr = BitConverter.GetBytes(value);
-            for (int i = 0; i < arr.Length; i++)
+            for (var i = 0; i < arr.Length; i++)
                 AddByte(ref index, arr[i]);
         }
         private void AddByte(ref byte index, byte value)
@@ -107,7 +97,7 @@ namespace ChairControl.ChairWork
         private static ushort FullCRC(byte[] p, int start, int end)
         {
             ushort crc = 58005;
-            for (int i = start; i < end; i++)
+            for (var i = start; i < end; i++)
             {
                 if (p[i] == MSG.ESC)
                 {
@@ -122,8 +112,8 @@ namespace ChairControl.ChairWork
 
         private static ushort CRC16(ushort crc, byte b)
         {
-            ushort num1 = (ushort)(byte.MaxValue & (crc >> 8 ^ b));
-            ushort num2 = (ushort)(num1 ^ (uint)num1 >> 4);
+            var num1 = (ushort)(byte.MaxValue & (crc >> 8 ^ b));
+            var num2 = (ushort)(num1 ^ (uint)num1 >> 4);
             return (ushort)((crc ^ num2 << 4 ^ num2 >> 3) << 8 ^ (num2 ^ num2 << 5) & byte.MaxValue);
         }
 
