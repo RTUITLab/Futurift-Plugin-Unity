@@ -31,7 +31,6 @@ class FutuRiftController
     FutuRiftController(int portNumber);
     void Start();
     void Stop();
-    static FutuRiftController Default { get; }
 }
 ```
 
@@ -61,8 +60,6 @@ sample.Pitch = -16f
 #### Stop()
 Метод, который останавливает управление креслом. После выполнения этого метода порт не используется программой
 
-#### FutuRiftController Default
-Свойство, возвращающее контроллер по умолчанию, в нем используется COM6
 
 # Важно!
 При окончании программы необходимо останавливать работу контроллера, как это делать показано в [примере работы с контроллером](https://github.com/ITLabRTUMIREA/UnityChairPlugin/blob/master/ChairControl/SimpleChairControl.cs)
