@@ -1,4 +1,4 @@
-# FutuRift-Plugin-Unity
+# Futurift-Plugin-Unity
 Данный плагин позволяет управлять креслом FutuRift из приложений, написанных на Unity.
 ## Добавление плагина в проект
 
