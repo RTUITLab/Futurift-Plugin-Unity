@@ -9,80 +9,67 @@ using ChairControl.Extensions;
 using System.Net;
 using System.Net.Sockets;
 using UnityEngine;
+using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.Options;
+using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork;
+using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.DataSenders;
+using System.Collections.ObjectModel;
 
 namespace ChairControl.ChairWork
 {
     public class FutuRiftController
     {
-        private static FutuRiftController defaultController = new FutuRiftController(6);
-
-        private readonly SerialPort port;
         private readonly Timer timer;
         private float pitch;
         private float roll;
         private readonly byte[] buffer = new byte[33];
-        Socket s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        IPEndPoint ep;
-        private bool InHomeMode = false;
-        private IPAddress Ip;
-        private int Port;
 
+        private readonly ReadOnlyCollection<IDataSender> senders;
 
         public float Pitch { get => pitch; set => pitch = value.Clamp(-15, 21); }
         public float Roll { get => roll; set => roll = value.Clamp(-18, 18); }
-        public bool IsConnected => port.IsOpen;
-        public FutuRiftController(int portNumber)
+
+        public FutuRiftController(ComPortOptions comPortOptions) : this(comPortOptions: comPortOptions, udpOptions: null)
         {
-            port = new SerialPort()
+        }
+        public FutuRiftController(UdpOptions udpOptions) : this(comPortOptions: null, udpOptions: udpOptions)
+        {
+        }
+        public FutuRiftController(ComPortOptions comPortOptions, UdpOptions udpOptions)
+        {
+            var sendersList = new List<IDataSender>();
+            if (comPortOptions != null)
             {
-                BaudRate = 115200,
-                DataBits = 8,
-                Parity = Parity.None,
-                StopBits = StopBits.One,
-                ReadBufferSize = 4096,
-                WriteBufferSize = 4096,
-                ReadTimeout = 500,
-                PortName = "COM" + portNumber,
-            };
+                sendersList.Add(new ComPortSender(comPortOptions));
+            }
+            if (udpOptions != null)
+            {
+                sendersList.Add(new UdpPortSender(udpOptions));
+            }
+            senders = sendersList.AsReadOnly();
             buffer[0] = MSG.SOM;
             buffer[1] = 33;
             buffer[2] = 12;
             buffer[3] = (byte)Flag.OneBlock;
             timer = new Timer(100);
             timer.Elapsed += Timer_Elapsed;
-            this.InHomeMode = false;
-        }
-
-        public FutuRiftController(int port, IPAddress Ip)
-        {
-            this.InHomeMode = true;
-            timer = new Timer(100);
-            timer.Elapsed += Timer_Elapsed;
-            this.Port = port;
-            this.Ip = Ip;
         }
 
         public void Start()
         {
-            if (InHomeMode)
+            foreach (var sender in senders)
             {
-                IPAddress broadcast = Ip;
-                ep = new IPEndPoint(broadcast, Port);
-            }
-            else
-            {
-                port.Open();
+                sender.Start();
             }
             timer.Start();
         }
 
         public void Stop()
         {
-            timer.Stop();
-            if (!InHomeMode)
+            foreach (var sender in senders)
             {
-                port.Close();
+                sender.Stop();
             }
+            timer.Stop();
         }
 
         private void Timer_Elapsed(object sender, ElapsedEventArgs e)
@@ -96,16 +83,10 @@ namespace ChairControl.ChairWork
             buffer[index++] = 0;
             Fill(ref index, FullCRC(buffer, 1, index));
             buffer[index++] = MSG.EOM;
-            string GG = BitConverter.ToString(buffer);
-            //UnityEngine.Debug.Log(Convert.ToInt32(buffer[8]));
-            UnityEngine.Debug.Log(GG);
-            if (InHomeMode)
+            UnityEngine.Debug.Log($"{Pitch} {Roll}");
+            foreach (var dataSender in senders)
             {
-                s.SendTo(Encoding.ASCII.GetBytes($"pr {pitch} {roll}"), ep);
-            }
-            else
-            {
-                port.Write(buffer, 0, index);
+                dataSender.SendData(buffer);
             }
         }
 

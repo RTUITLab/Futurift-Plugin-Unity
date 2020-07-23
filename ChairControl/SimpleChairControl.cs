@@ -1,4 +1,5 @@
-﻿using ChairControl.ChairWork;
+﻿using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.Options;
+using ChairControl.ChairWork;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace ChairControl
         private FutuRiftController controller;
         void Start()
         {
-            controller = new FutuRiftController(portNumber)
+            controller = new FutuRiftController(new ComPortOptions { ComPort = 6 })
             {
                 Pitch = pitch,
                 Roll = roll
