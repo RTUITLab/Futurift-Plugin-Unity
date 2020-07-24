@@ -28,14 +28,17 @@ namespace ChairControl.ChairWork
         public float Pitch { get => pitch; set => pitch = value.Clamp(-15, 21); }
         public float Roll { get => roll; set => roll = value.Clamp(-18, 18); }
 
-        public FutuRiftController(ComPortOptions comPortOptions) : this(comPortOptions: comPortOptions, udpOptions: null)
+        public FutuRiftController(ComPortOptions comPortOptions, FutuRiftOptions futuRiftOptions = null)
+            : this(comPortOptions: comPortOptions, udpOptions: null, futuRiftOptions: futuRiftOptions)
         {
         }
-        public FutuRiftController(UdpOptions udpOptions) : this(comPortOptions: null, udpOptions: udpOptions)
+        public FutuRiftController(UdpOptions udpOptions, FutuRiftOptions futuRiftOptions = null)
+            : this(comPortOptions: null, udpOptions: udpOptions, futuRiftOptions: futuRiftOptions)
         {
         }
-        public FutuRiftController(ComPortOptions comPortOptions, UdpOptions udpOptions)
+        public FutuRiftController(ComPortOptions comPortOptions, UdpOptions udpOptions, FutuRiftOptions futuRiftOptions = null)
         {
+            futuRiftOptions = futuRiftOptions ?? new FutuRiftOptions();
             var sendersList = new List<IDataSender>();
             if (comPortOptions != null)
             {
@@ -50,7 +53,7 @@ namespace ChairControl.ChairWork
             buffer[1] = 33;
             buffer[2] = 12;
             buffer[3] = (byte)Flag.OneBlock;
-            timer = new Timer(100);
+            timer = new Timer(futuRiftOptions.interval);
             timer.Elapsed += Timer_Elapsed;
         }
 
@@ -83,7 +86,6 @@ namespace ChairControl.ChairWork
             buffer[index++] = 0;
             Fill(ref index, FullCRC(buffer, 1, index));
             buffer[index++] = MSG.EOM;
-            UnityEngine.Debug.Log($"{Pitch} {Roll}");
             foreach (var dataSender in senders)
             {
                 dataSender.SendData(buffer);
