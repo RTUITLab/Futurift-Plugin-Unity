@@ -40,7 +40,13 @@
   <ItemGroup>
     <Compile Include="ChairWork\Flag.cs" />
     <Compile Include="ChairWork\FutuRiftController.cs" />
+    <Compile Include="ChairWork\IDataSender.cs" />
     <Compile Include="ChairWork\MSG.cs" />
+    <Compile Include="ChairWork\Options\ComPortOptions.cs" />
+    <Compile Include="ChairWork\DataSenders\ComPortSender.cs" />
+    <Compile Include="ChairWork\DataSenders\UdpPortSender.cs" />
+    <Compile Include="ChairWork\Options\FutuRiftOptions.cs" />
+    <Compile Include="ChairWork\Options\UdpOptions.cs" />
     <Compile Include="Extensions\IComparableExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleChairControl.cs" />
@@ -48,6 +54,7 @@
   <ItemGroup>
     <Content Include="OutFilePath.txt" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>set /p Build=&lt;$(ProjectDir)OutFilePath.txt
