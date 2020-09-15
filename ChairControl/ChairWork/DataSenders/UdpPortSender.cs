@@ -1,13 +1,11 @@
-﻿using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.Options;
+﻿using ChairControl.ChairWork;
+using ChairControl.ChairWork.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.DataSenders
+namespace ChairControl.ChairWork.DataSenders
 {
     internal class UdpPortSender : IDataSender
     {
@@ -20,7 +18,7 @@ namespace Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.DataSenders
         }
         public void SendData(byte[] data)
         {
-            udpClient.Send(data, data.Length, endPoint); 
+            udpClient.Send(data, data.Length, endPoint);
         }
 
         public void Start()

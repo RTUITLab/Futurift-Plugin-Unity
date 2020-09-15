@@ -1,5 +1,5 @@
-﻿using Assets.Plugins.UnityChairPlugin.ChairControl.ChairWork.Options;
-using ChairControl.ChairWork;
+﻿using ChairControl.ChairWork;
+using ChairControl.ChairWork.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
